@@ -14,6 +14,11 @@ int main() {
       // Captures the user's command in the "command" variable
       std::string command;
       std::getline(std::cin, command);
+
+      // To exit program with "exit"
+      if (command == "exit") {
+          break;
+      }
   
       // Prints the "<command>: command not found" message
       std::cout << command << ": command not found" << std::endl;
