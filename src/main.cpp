@@ -74,6 +74,7 @@ int REP_System()
 	}
 	if (userInput.substr(0,5) == "echo ") {
 		commandEcho(userInput);
+		return 0;
 	}
 	if (userInput.substr(0,5) == "type ") {
 		commandType(userInput);
