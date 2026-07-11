@@ -5,6 +5,8 @@
 #include <vector>
 #include <iterator>
 #include <sstream>
+#include <algorithm>
+#include <sys/wait.h>
 
 // To define OS based path spliter - different OS adaptible
 #if _WIN32
@@ -13,6 +15,51 @@ constexpr char PATH_LIST_SEPARATOR = ';';
 constexpr char PATH_LIST_SEPARATOR = ':';
 #endif
 
+// Function to split the input string
+std::vector<std::string> splitInput(const std::string& input)
+{
+	std::istringstream iss(input);
+	std::vector<std::string> tokens;
+	std::string token;
+
+	while (iss >> token) {
+		tokens.push_back(token);
+	}
+
+	return tokens;
+}
+
+// To Run external command
+void runExternalCommand(const std::string& userInput)
+{
+	std::vector<std::string> tokens = splitInput(userInput);
+	
+	if (tokens.empty()) { return; }
+
+	std::vector<char*> argv;
+	for (auto& token : tokens)
+	{
+		argv.push_back(const_cast<char*>(token.c_str()));
+	}
+	argv.push_back(nullptr);
+
+	pid_t pid = fork();
+
+	if (pid < 0) { 
+		std::cerr << "fork failed" << std::endl;
+		return;
+	}
+
+	if (pid == 0) {
+		execvp(argv[0], argv.data());
+		std::cerr << userInput << ": command not found" << std::endl;
+		_exit(1);
+	}
+	else {
+		int status;
+		waitpid(pid, &status, 0);
+	}
+}
 
 // Logic for type command using vector to check for valid command
 const std::vector<std::string> g_valid_commands = {"exit", "echo", "type"};
@@ -81,7 +128,7 @@ int REP_System()
 		return 0;
 	}
 
-	std::cout << userInput << ": command not found" << std::endl;
+	runExternalCommand(userInput);
 	return 0;
 }
 
@@ -100,4 +147,6 @@ int main()
 		// Checks for invalid running or breakage
 		if (returnVal == -1) { break; }
 	}
+
+	return 0;
 }
